@@ -1,8 +1,13 @@
+from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 
 
 from posts.models import Comment, Post, Group, Follow
+
+User = get_user_model()
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -30,8 +35,80 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
 
 
+# class FollowSerializer(serializers.ModelSerializer):
+#     user = SlugRelatedField(
+#         read_only=True,
+#         slug_field='username',
+#         default=serializers.CurrentUserDefault(),
+#         queryset=User.objects.all()
+#     )
+#     following = SlugRelatedField(
+#         slug_field='username',
+#         queryset=User.objects.all()
+#     )
+#     class Meta:
+#         fields = '__all__'
+#         model = Follow
+#         validators = [
+#             UniqueTogetherValidator(
+#                 queryset=Follow.objects.all(),
+#                 fields=('following', 'user')
+#             )
+#         ]
+
+#         def validate(self, data):
+#             if data['following'] == data['user']:
+#                 raise serializers.ValidationError("Нельзя подписываться на себя")
+#             return data
+
+
+# class FollowSerializer(serializers.ModelSerializer):
+#     user = SlugRelatedField(
+#         slug_field='username',
+#         default=serializers.CurrentUserDefault(),
+#         queryset=User.objects.all()
+#     )
+#     following = SlugRelatedField(
+#         slug_field='username',
+#         read_only=True
+#     )
+#     class Meta:
+#         fields = '__all__'
+#         model = Follow
+#         validators = [
+#             UniqueTogetherValidator(
+#                 queryset=Follow.objects.all(),
+#                 fields=('following', 'user')
+#             )
+#         ]
+
+#         def validate(self, data):
+#             if data['following'] == data['user']:
+#                 raise serializers.ValidationError("Нельзя подписываться на себя")
+#             return data
+
 class FollowSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        queryset=User.objects.all(),
+        default=serializers.CurrentUserDefault()
+    )
+
+    following = serializers.SlugRelatedField(
+        slug_field="username", queryset=User.objects.all()
+    )
 
     class Meta:
-        fields = '__all__'
         model = Follow
+        fields = ("id", "user", "following")
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(), fields=("user", "following")
+            )
+        ]
+
+        def validate(self, data):
+            if data["user"] == data["following"]:
+                raise serializers.ValidationError("You can not follow yourslef!")
+            return data

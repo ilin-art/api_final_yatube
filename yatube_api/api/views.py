@@ -6,6 +6,7 @@ from posts.models import Group, Post, Comment, Follow
 from .serializers import GroupSerializer, PostSerializer, CommentSerializer, FollowSerializer
 from rest_framework import permissions
 from .permissions import IsOwnerOrReadOnly
+from rest_framework import filters
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -36,12 +37,26 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class FollowViewSet(viewsets.ModelViewSet):
-    queryset = Follow.objects.all()
-    serializer_class = FollowSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+# class FollowViewSet(viewsets.ModelViewSet):
+#     serializer_class = FollowSerializer
+#     filter_backends =  (filters.SearchFilter,)
+#     search_fields = ('following__username',)
 
-    # def get(self, request):
-    #     cats = Follow.objects.all()
-    #     serializer = FollowSerializer(cats, many=True)
-    #     return Response(serializer.data)
+#     def get_queryset(self):
+#         return Follow.objects.filter(user=self.request.user)
+
+#     def perform_create(self, serializer):
+#         serializer.save(user=self.request.user)
+
+class FollowViewSet(viewsets.ModelViewSet):
+    serializer_class = FollowSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("following__username",)
+
+    def get_queryset(self):
+        queryset = Follow.objects.filter(user=self.request.user)
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
