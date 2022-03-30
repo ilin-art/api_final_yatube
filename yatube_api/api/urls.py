@@ -1,13 +1,13 @@
-from rest_framework.routers import SimpleRouter
-
 from django.urls import include, path
+
+from rest_framework.routers import SimpleRouter
 
 from .views import GroupViewSet, PostViewSet, CommentViewSet, FollowViewSet
 
 
 router = SimpleRouter()
 
-router.register('groups', GroupViewSet) # Убрать basename если нет def get_queryset во вью
+router.register('groups', GroupViewSet)
 router.register('posts', PostViewSet)
 router.register(
     r'posts/(?P<post_id>\d+)/comments',
