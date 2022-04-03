@@ -30,11 +30,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_queryset(self):
-        post_id = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        new_queryset = Comment.objects.filter(post=post_id)
-        return new_queryset
-
-    def get_queryset(self):
         post_id = self.kwargs.get('post_id')
         if Post.objects.filter(id=post_id).exists():
             new_queryset = Comment.objects.filter(
@@ -53,7 +48,6 @@ class FollowViewSet(viewsets.ModelViewSet):
     search_fields = ('following__username',)
 
     def get_queryset(self):
-        # queryset = Follow.objects.filter(user=self.request.user)
         return self.request.user.user.all()
 
     def perform_create(self, serializer):
